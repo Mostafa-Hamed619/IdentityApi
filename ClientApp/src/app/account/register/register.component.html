@@ -1,0 +1,78 @@
+<div class="d-flex justify-content-center">
+    <div class="col-12 col-lg-5">
+        <main class="form-signin">
+            <form [formGroup]="registerForm" (ngSubmit)="register()" autocomplete="off">
+                <div class="text-center mb-4">
+                    <h3 class="mb-3 font-weight-normal">
+                        Let's Get Started To 
+                        <span class="text-danger">Play</span>
+                    </h3>
+                </div>
+                <div class="form-floating mb-3">
+                    <input formControlName='FirstName' type="text" class="form-control" placeholder="First name"
+                    [class.is-invalid] ="submitted && registerForm.get('FirstName')?.errors">
+                    <label for="FirstName">First name</label>
+                    <span class="text-danger" *ngIf="submitted && registerForm.get('FirstName')?.hasError('required')">
+                        First name is required
+                    </span>
+                    <span class="text-danger" *ngIf="submitted && registerForm.get('FirstName')?.hasError('minlength') ||
+                     registerForm.get('FirstName')?.hasError('maxlength')">
+                     First name must be at least 3 characters,Maximum 15 characters
+                    </span>
+                </div>
+
+
+                <div class="form-floating mb-3">
+                    <input formControlName="LastName" type="text" class="form-control" placeholder="Last name"
+                    [class.is-invalid]="submitted && registerForm.get('LastName')?.hasError('required')">
+                    <label for="LastName">Last name</label>
+                    <span class="text-danger" *ngIf="submitted && registerForm.get('LastName')?.hasError('required')">
+                        Last name is required
+                    </span>
+                    <span class="text-danger" *ngIf="submitted && registerForm.get('LastName')?.hasError('minlength') ||
+                     registerForm.get('LastName')?.hasError('maxlength')">
+                     Last name must be at least 3 characters,Maximum 15 characters
+                    </span>
+                </div>
+                
+                
+                <div class="form-floating mb-3">
+                    <input formControlName="Email" type="text" class="form-control" placeholder="Email"
+                    [class.is-invalid]="submitted && registerForm.get('Email')?.hasError('required')">
+                    <label for="Email">Email</label>
+                    <span class="text-danger" *ngIf="submitted && registerForm.get('Email')?.hasError('required')">
+                        Email address is required
+                    </span> 
+                    <span class="text-danger" *ngIf="submitted && registerForm.get('Email')?.hasError('pattern')">
+                        Invalid Email Address
+                    </span>
+                </div>
+
+
+                <div class="form-floating mb-3">
+                    <input formControlName="Password" type="password" class="form-control" placeholder="Password"
+                    [class.is-invalid]="submitted && registerForm.get('Password')?.hasError('required')">
+                    <label for="Password">Password</label>
+                    <span class="text-danger" *ngIf="submitted && registerForm.get('Password')?.hasError('required')">
+                        Password is required
+                    </span>
+                    <span class="text-danger" *ngIf="submitted && registerForm.get('Password')?.hasError('minlength') ||
+                     registerForm.get('Password')?.hasError('maxlength')">
+                     password name must be at least 3 characters,Maximum 15 characters
+                    </span>
+                </div>
+                <div class="form-floatin" *ngIf="errormessages.length > 0">
+                    <app-validation-messages [errorMessages]="errormessages"></app-validation-messages>
+                </div>
+
+                <div class="d-grid mt-4 px-1">
+                    <button class="btn btn-lg btn-info" type="submit">
+                        Create account 
+                    </button>
+                </div>
+            </form>
+
+          
+        </main>
+    </div>
+</div>

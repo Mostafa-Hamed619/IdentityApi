@@ -58,7 +58,7 @@ namespace AdminFullStack.Controllers
                 {
                     return BadRequest(result.Errors);
                 }
-                return Ok("Your Account is Created");
+                return Ok(new JsonResult (new {title = "Account Created",message ="\"Your account has been created"}));
             }
           
         }
@@ -70,7 +70,7 @@ namespace AdminFullStack.Controllers
             var user = await userManager.FindByNameAsync(model.UserName);
             if(user == null)
             {
-                return Unauthorized("Invaliid username or password");
+                return Unauthorized("Invalid username or password");
             }
 
             if(user.EmailConfirmed == false)
