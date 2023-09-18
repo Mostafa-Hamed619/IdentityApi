@@ -1,1 +1,5 @@
-<p>home works!</p>
+<p *ngIf="accountService.user$ |async as user">
+Hello to the Home Page {{user.firstName}} {{user.lastName}} 
+</p>
+
+<button (click)="ShowInfo()" class="btn btn-info">ShowInfo</button>

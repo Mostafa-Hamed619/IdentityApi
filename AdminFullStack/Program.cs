@@ -45,7 +45,7 @@ AddUserManager<UserManager<User>>() //Make the use of UserManager to create
 
 // be able to inject jwtservices inside our controllers
 builder.Services.AddScoped<JWTServices>();
-
+builder.Services.AddScoped<EmailServices>();
 
 // be able to authenticate users using jwt
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -66,8 +66,10 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = action =>
     {
-        var error = action.ModelState.Where(x => x.Value.Errors.Count > 0).
-        SelectMany(x => x.Value.Errors).SelectMany(x => x.ErrorMessage).ToArray();
+        var error = action.ModelState.
+        Where(x => x.Value.Errors.Count > 0)
+        .SelectMany(x => x.Value.Errors)
+        .Select(x => x.ErrorMessage).ToArray();
 
         var toReturn = new
         {
