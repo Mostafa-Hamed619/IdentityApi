@@ -102,7 +102,7 @@ namespace AdminFullStack.Controllers
                 if (result.Succeeded)
                 {
                     return Ok(new JsonResult(new { title = "Email confirmed", message = "your email is confirmed.you can login now" }));
-                }
+                } 
                 return BadRequest("Invalid token. Please try again.");
             }
             catch (Exception)
@@ -170,7 +170,7 @@ namespace AdminFullStack.Controllers
 
                 var result = await userManager.ResetPasswordAsync(user, decodedToken, model.newPassword);
 
-                if(result.Succeeded) 
+                if(result.Succeeded)
                 { 
                     return Ok(new JsonResult(new {Title="Password Reset Succedded" ,Message="Your password has been resetted"}));
                 }

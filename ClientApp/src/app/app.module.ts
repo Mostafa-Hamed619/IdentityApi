@@ -12,6 +12,7 @@ import { AccountModule } from './account/account.module';
 import { PlayComponent } from './play/play.component';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { JwtInterceptor } from './shared/jwt.interceptor';
+import { ResetPasswordComponent } from './account/reset-password/reset-password.component';
 
 @NgModule({
   declarations: [
@@ -19,7 +20,8 @@ import { JwtInterceptor } from './shared/jwt.interceptor';
     NavbarComponent,
     FooterComponent,
     HomeComponent,
-    PlayComponent
+    PlayComponent,
+    ResetPasswordComponent
   ],
   imports: [
     BrowserModule,

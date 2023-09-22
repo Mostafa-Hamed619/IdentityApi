@@ -1,11 +1,13 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Register } from '../shared/models/Register';
+import { Register } from '../shared/models/account/Register';
 import { environment } from 'src/environments/environment.development';
-import { Login } from '../shared/models/Login';
-import { User } from '../shared/models/user';
+import { Login } from '../shared/models/account/Login';
+import { User } from '../shared/models/account/user';
 import { Router, UrlSegment } from '@angular/router';
 import { ReplaySubject, map, observable, of } from 'rxjs';
+import { confirmEmail } from '../shared/models/account/confirmEmail';
+import { ResetPasswordModel } from '../shared/models/account/ResetPasswordModel';
 
 @Injectable({
   providedIn: 'root'
@@ -37,7 +39,20 @@ export class AccountService {
     this.router.navigateByUrl('/')
   }
 
-  
+  confirmEmail(model : confirmEmail){
+    return this.http.put(`${environment.appUrl}/Api/Account/confirm-email`,model);
+  }
+
+  resendEmailConfirmation(email :string){
+    return this.http.post(`${environment.appUrl}/Api/Account/resend-email-confirmation-link/${email}`,{});
+  }
+  forgotPasswordOrUsername(email : string){
+    return this.http.post(`${environment.appUrl}/Api/Account/forgot-username-or-password/${email}`,{});
+  }
+
+  resetPasswordFun(model :ResetPasswordModel){
+    return this.http.put(`${environment.appUrl}/Api/Account/reset-password`,model);
+  }
   refreshjwt(jwt : string |null){
     if(jwt === null){
       this.userSource.next(null);
@@ -72,4 +87,5 @@ export class AccountService {
     //   }
     //})
   }
+  
 }

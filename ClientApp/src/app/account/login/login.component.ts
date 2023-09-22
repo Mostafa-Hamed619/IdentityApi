@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AccountService } from '../account.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { take } from 'rxjs';
-import { User } from 'src/app/shared/models/user';
+import { User } from 'src/app/shared/models/account/user';
 
 @Component({
   selector: 'app-login',
@@ -43,8 +43,8 @@ export class LoginComponent implements OnInit{
 
   initializeForm(){
     this.loginForm = this.FormBuilder.group({
-        'username' : ['Mos21@gmail.com',[Validators.required,Validators.pattern('^\\w+@[a-zA-Z_]+?\\.[a-zA-Z]{2,3}$')]],
-        'password' : ['Mos@21',[Validators.required]]
+        'username' : ['',[Validators.required,Validators.pattern('^\\w+@[a-zA-Z_]+?\\.[a-zA-Z]{2,3}$')]],
+        'password' : ['',[Validators.required]]
       }
     )
   }
@@ -74,5 +74,9 @@ export class LoginComponent implements OnInit{
       })
     }
     
+  }
+
+  resendEmailConfirmationLink(){
+    this.router.navigateByUrl("account/send-email/resend-email-confirmation-link");
   }
 }
