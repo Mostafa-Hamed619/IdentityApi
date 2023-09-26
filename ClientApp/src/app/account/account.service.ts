@@ -8,6 +8,8 @@ import { Router, UrlSegment } from '@angular/router';
 import { ReplaySubject, map, observable, of } from 'rxjs';
 import { confirmEmail } from '../shared/models/account/confirmEmail';
 import { ResetPasswordModel } from '../shared/models/account/ResetPasswordModel';
+import { RegisterWithExternal } from '../shared/models/account/RegiseterWithExternal';
+import { loginWithExternal } from '../shared/models/account/loginWithExternal';
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +21,16 @@ export class AccountService {
 
   register(model:Register){
     return this.http.post(`${environment.appUrl}/api/Account/Register`,model);
+  }
+
+  registerWithThirdParty(model : RegisterWithExternal){
+    return this.http.post<User>(`${environment.appUrl}/Api/Account/register-with-third-party/`,model).pipe(
+      map((user : User | null)=>{
+        if(user){
+          this.setUser(user);
+        }
+      })
+    )
   }
 
   login(model : Login){
@@ -33,10 +45,20 @@ export class AccountService {
     );
   }
 
+  loginWithThirdParty(model : loginWithExternal){
+    return this.http.post<User>(`${environment.appUrl}/Api/Account/login-with-third-party`,model).pipe(
+      map((user : User)=>{
+        if(user){
+          this.setUser(user);
+        }
+      })
+    );
+  }
+
   logout(){
     localStorage.removeItem(environment.userKey);
     this.userSource.next(null);
-    this.router.navigateByUrl('/')
+    this.router.navigateByUrl('/');
   }
 
   confirmEmail(model : confirmEmail){

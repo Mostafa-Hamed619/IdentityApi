@@ -1,4 +1,4 @@
-<p *ngIf="accountService.user$ |async as user">
-Hello to the Home Page {{user.firstName}} {{user.lastName}} 
-</p>
-
+<div class="text-center" *ngIf="accountService.user$ |async as user">
+    <h1>Welcome to <span class="text-warning">Identity App</span></h1>
+    <h1>{{user.firstName}} {{user.lastName}}</h1>
+</div>

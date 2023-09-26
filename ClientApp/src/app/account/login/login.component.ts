@@ -4,6 +4,9 @@ import { AccountService } from '../account.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { take } from 'rxjs';
 import { User } from 'src/app/shared/models/account/user';
+import { SharedService } from 'src/app/shared/shared.service';
+import { loginWithExternal } from 'src/app/shared/models/account/loginWithExternal';
+declare const FB : any;
 
 @Component({
   selector: 'app-login',
@@ -19,7 +22,7 @@ export class LoginComponent implements OnInit{
 
   profile :string | null =''
   constructor(private FormBuilder : FormBuilder,private AccountServices : AccountService,
-    private router : Router,private activatedRoute : ActivatedRoute ){
+    private router : Router,private activatedRoute : ActivatedRoute,private sharedService : SharedService ){
       this.AccountServices.user$.pipe(take(1)).subscribe({
         next:(user : User | null)=>{
           if(user){
@@ -43,8 +46,8 @@ export class LoginComponent implements OnInit{
 
   initializeForm(){
     this.loginForm = this.FormBuilder.group({
-        'username' : ['',[Validators.required,Validators.pattern('^\\w+@[a-zA-Z_]+?\\.[a-zA-Z]{2,3}$')]],
-        'password' : ['',[Validators.required]]
+        'username' : ['hamedmostafa726@gmail.com',[Validators.required,Validators.pattern('^\\w+@[a-zA-Z_]+?\\.[a-zA-Z]{2,3}$')]],
+        'password' : ['hamed@21',[Validators.required]]
       }
     )
   }
@@ -78,5 +81,30 @@ export class LoginComponent implements OnInit{
 
   resendEmailConfirmationLink(){
     this.router.navigateByUrl("account/send-email/resend-email-confirmation-link");
+  }
+
+  loginWithFacebook(){
+    FB.login(async(fbResult : any)=>{
+      if(fbResult.authResponse){
+        const accessToken = fbResult.authResponse.accessToken;
+        const userId = fbResult.authResponse.userID;
+        this.AccountServices.loginWithThirdParty(new loginWithExternal( accessToken, userId, "facebook")).subscribe({
+          next:_=>{
+            if(this.returnUrl){this.router.navigateByUrl(this.returnUrl);}
+            else{this.router.navigateByUrl("/");}
+          },error:(error)=>{
+            console.log(error)
+            if(error.error.errors){
+              this.errorMessages = error.error.errors;
+            }else{
+              this.errorMessages.push(error.error)
+            }
+          }
+        })
+
+      }else{
+        this.sharedService.showNotification(false, "Failed", "Unable to login with your facebook")
+      }
+    })
   }
 }

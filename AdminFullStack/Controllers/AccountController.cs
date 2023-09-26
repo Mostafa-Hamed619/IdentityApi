@@ -14,6 +14,11 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
+using Microsoft.Win32;
+using System.Reflection.Metadata.Ecma335;
+using Google.Apis.Auth;
 
 namespace AdminFullStack.Controllers
 {
@@ -26,6 +31,7 @@ namespace AdminFullStack.Controllers
         private readonly UserManager<User> userManager;
         private readonly EmailServices emailServices;
         private readonly IConfiguration config;
+        private readonly HttpClient _facebookHttpClient;
 
         public AccountController(JWTServices jwtServices,SignInManager<User> signInManager,
             UserManager<User> userManager,EmailServices emailServices,IConfiguration config)
@@ -35,6 +41,10 @@ namespace AdminFullStack.Controllers
             this.userManager = userManager;
             this.emailServices = emailServices;
             this.config = config;
+            _facebookHttpClient = new HttpClient
+            {
+                BaseAddress =new Uri("https://graph.facebook.com")
+            };
         }
         [Authorize]
         [HttpGet("refresh-user-token")]
@@ -84,6 +94,58 @@ namespace AdminFullStack.Controllers
             }
           
         }
+
+
+        [HttpPost("register-with-third-party")]
+        public async Task<ActionResult<UserDTO>> RegisterWithThirdParty(RegisterWithExternal model)
+        {
+            if (model.provider.Equals(SD.Facebook))
+            {
+                try
+                {
+                    if (!FacebookValidationAsync(model.accessToken, model.userId).GetAwaiter().GetResult())
+                    {
+                        return Unauthorized("Unable to register with facebook");
+                    }
+                }catch(Exception)
+                {
+                    return Unauthorized("Unable to register with facebook");
+                }
+            }else if (model.provider.Equals(SD.Google))
+            {
+                try
+                {
+                    if (!GoogleValidatedAsync(model.accessToken, model.userId).GetAwaiter().GetResult())
+                    {
+                        return Unauthorized("Unable to register with google");
+                    }
+                }
+                catch (Exception)
+                {
+                    return Unauthorized("Unable to register with google");
+                }
+            }
+            else
+            {
+                return BadRequest("Invalid provider");
+            }
+            var user = await userManager.FindByNameAsync(model.userId);
+            if(user != null) { return BadRequest(string.Format("This user name is already existing.You can Login sir", model.provider)); }
+
+            var userToAdd = new User()
+            {
+                UserName = model.userId,
+                FirstName = model.firstName,
+                LastName = model.lastName,
+                Provider = model.provider
+            };
+
+            var result = await userManager.CreateAsync(userToAdd);
+            if (!result.Succeeded) return BadRequest(result.Errors);
+
+            return CreateApplicationUserDto(userToAdd);
+        }
+        
 
         [HttpPut("confirm-email")]
         public async Task<IActionResult> ConfirmEmail(ConfirmEmailDto model)
@@ -204,7 +266,36 @@ namespace AdminFullStack.Controllers
             return CreateApplicationUserDto(user);
         }
 
+        [HttpPost("login-with-third-party")]
+        public async Task<ActionResult<UserDTO>> LoginWithThirdParty(LoginWithThirdParty model)
+        {
+            if (model.providers.Equals(SD.Facebook))
+            {
+                try
+                {
+                    if(!FacebookValidationAsync(model.accessToken, model.userId).GetAwaiter().GetResult())
+                    {
+                        return Unauthorized("Unable to login with facebook account");
+                    }
+                }
+                catch (Exception)
+                {
+                    return Unauthorized("Unable to login with facebook account");
+                }
+            }
+            else if (model.providers.Equals(SD.Google))
+            {
 
+            }
+            else
+            {
+                return BadRequest("Invalid provider");
+            }
+            var user = await userManager.Users.FirstOrDefaultAsync(x => x.UserName == model.userId && x.Provider == model.providers);
+            if( user == null) { return Unauthorized("Unable to find your account"); }
+            return CreateApplicationUserDto(user);
+
+        }
         #region Private Helper Methods
         private UserDTO CreateApplicationUserDto(User user)
         {
@@ -253,6 +344,51 @@ namespace AdminFullStack.Controllers
 
             var emailSend = new EmailSendDto(user.Email, " Reset your password ", body);
             return await emailServices.SendEmailAsync(emailSend);
+        }
+
+        private async Task<bool> FacebookValidationAsync(string accessToken,string userId)
+        {
+            var facebookKeys = config["Facebook:AppApi"] + "|" + config["Facebook:SecretKey"];
+            var fbResult = await _facebookHttpClient.GetFromJsonAsync<FacebookDtoResult>($"debug_token?input_token={accessToken}&access_token={facebookKeys}");
+
+            if(fbResult == null || fbResult.Data.Is_Valid == false || fbResult.Data.User_id !=userId)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private async Task<bool> GoogleValidatedAsync(string accessToken,string userId)
+        {
+            var payload = await GoogleJsonWebSignature.ValidateAsync(accessToken);
+
+            if (!payload.Audience.Equals(config["google:ClientId"]))
+            {
+                return false;
+            }
+            if(!payload.Issuer.Equals("accounts.google.com") && !payload.Issuer.Equals("https://accounts.google.com"))
+            {
+                return false;
+            }
+
+            if(payload.ExpirationTimeSeconds == null)
+            {
+                return false; 
+            }
+
+            DateTime now = DateTime.Now.ToUniversalTime();
+            DateTime expirationDate = DateTimeOffset.FromUnixTimeSeconds((long)payload.ExpirationTimeSeconds).DateTime;
+            if(now > expirationDate)
+            {
+                return false;
+            }
+            userId = payload.Subject;
+            if (!payload.Subject.Equals(userId))
+            {
+                return false;
+            }
+
+            return true;
         }
         #endregion
     }
