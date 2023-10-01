@@ -51,7 +51,7 @@ namespace AdminFullStack.Controllers
         public async Task<ActionResult<UserDTO>> RefreshToken()
         {
             var user = await userManager.FindByNameAsync(User.FindFirst(ClaimTypes.Email)?.Value);
-            return CreateApplicationUserDto(user); 
+            return await CreateApplicationUserDto(user); 
         }
 
         [HttpPost("Register")]
@@ -77,7 +77,7 @@ namespace AdminFullStack.Controllers
                 {
                     return BadRequest(result.Errors);
                 }
-
+                await userManager.AddToRoleAsync(user, SD.PlayerRole);
                 try
                 {
                     if(await SendConfirmEmailAsync(user))
@@ -143,7 +143,7 @@ namespace AdminFullStack.Controllers
             var result = await userManager.CreateAsync(userToAdd);
             if (!result.Succeeded) return BadRequest(result.Errors);
 
-            return CreateApplicationUserDto(userToAdd);
+            return await CreateApplicationUserDto(userToAdd);
         }
         
 
@@ -258,12 +258,29 @@ namespace AdminFullStack.Controllers
                 return Unauthorized("Please confirm your email");
             }
 
-            var result = await signInManager.CheckPasswordSignInAsync(user, model.Password,false);
+            var result = await signInManager.CheckPasswordSignInAsync(user, model.Password,true);
+
+            if(result.IsLockedOut)
+            {
+                return Unauthorized(string.Format("Your account has been locked.please should wait until {0} (UTC time) to be able to login", user.LockoutEnd));
+            }
             if(!result.Succeeded)
             {
+                if (!user.UserName.Equals(SD.AdminUserName))
+                {
+                    await userManager.AccessFailedAsync(user);
+                }
+                if(user.AccessFailedCount >= SD.MaximumLoginAttempts)
+                {
+                    await userManager.SetLockoutEndDateAsync(user, DateTime.UtcNow.AddDays(1));
+                    return Unauthorized(string.Format("Your account has been locked.please should wait until {0} (UTC time) to be able to login", user.LockoutEnd));
+                }
                 return Unauthorized("Invalid username or password");
+
             }
-            return CreateApplicationUserDto(user);
+            await userManager.ResetAccessFailedCountAsync(user);
+            await userManager.SetLockoutEndDateAsync(user, null);
+            return await CreateApplicationUserDto(user);
         }
 
         [HttpPost("login-with-third-party")]
@@ -293,17 +310,17 @@ namespace AdminFullStack.Controllers
             }
             var user = await userManager.Users.FirstOrDefaultAsync(x => x.UserName == model.userId && x.Provider == model.providers);
             if( user == null) { return Unauthorized("Unable to find your account"); }
-            return CreateApplicationUserDto(user);
+            return await CreateApplicationUserDto(user);
 
         }
         #region Private Helper Methods
-        private UserDTO CreateApplicationUserDto(User user)
+        private async Task<UserDTO> CreateApplicationUserDto(User user)
         {
             return new UserDTO
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                Jwt = jwtServices.CreateJWT(user),
+                Jwt =await jwtServices.CreateJWT(user),
             };
         }
 
@@ -387,7 +404,6 @@ namespace AdminFullStack.Controllers
             {
                 return false;
             }
-
             return true;
         }
         #endregion
