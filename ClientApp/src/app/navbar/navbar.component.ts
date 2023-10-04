@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, TestabilityRegistry } from '@angular/core';
 import { AccountService } from '../account/account.service';
 
 @Component({
@@ -7,9 +7,15 @@ import { AccountService } from '../account/account.service';
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent {
+
+  collapse = true;
   constructor(public accountServices : AccountService){}
 
   Logout(){
     this.accountServices.logout()
+  }
+
+  toggleCollapsed(){
+    this.collapse = !this.collapse;
   }
 }

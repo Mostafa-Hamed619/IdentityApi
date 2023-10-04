@@ -141,14 +141,7 @@ namespace AdminFullStack.Controllers
             else
             {
                 //Editing an existing Member.
-                if(string.IsNullOrEmpty(model.Password))
-                {
-                    if(model.Password.Length < 6)
-                    {
-                        ModelState.AddModelError("error", "Password must be at least 6 characters");
-                        return BadRequest(ModelState);
-                    }
-                }
+              
                 if(IsAdminUserId(model.Id))
                 {
                     return BadRequest(SD.SuperAdminChangeNotAllowed);

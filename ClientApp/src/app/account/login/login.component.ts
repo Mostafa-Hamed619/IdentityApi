@@ -6,6 +6,7 @@ import { take } from 'rxjs';
 import { User } from 'src/app/shared/models/account/user';
 import { SharedService } from 'src/app/shared/shared.service';
 import { loginWithExternal } from 'src/app/shared/models/account/loginWithExternal';
+import { MemberDto } from 'src/app/shared/models/Admin/MemberDto';
 declare const FB : any;
 
 @Component({
@@ -17,9 +18,9 @@ export class LoginComponent implements OnInit{
 
   loginForm : FormGroup = new FormGroup({});
   Submitted = false;
-  errorMessages : string[] =[];
+  errorMessages : any |string[] =[];
   returnUrl : string =''
-
+  
   profile :string | null =''
   constructor(private FormBuilder : FormBuilder,private AccountServices : AccountService,
     private router : Router,private activatedRoute : ActivatedRoute,private sharedService : SharedService ){
@@ -46,8 +47,8 @@ export class LoginComponent implements OnInit{
 
   initializeForm(){
     this.loginForm = this.FormBuilder.group({
-        'username' : ['hamedmostafa726@gmail.com',[Validators.required,Validators.pattern('^\\w+@[a-zA-Z_]+?\\.[a-zA-Z]{2,3}$')]],
-        'password' : ['hamed@21',[Validators.required]]
+        'username' : ['',[Validators.required,Validators.pattern('^\\w+@[a-zA-Z_]+?\\.[a-zA-Z]{2,3}$')]],
+        'password' : ['',[Validators.required]]
       }
     )
   }
@@ -57,7 +58,8 @@ export class LoginComponent implements OnInit{
     this.errorMessages = [];
     if(this.loginForm.valid){
       this.AccountServices.login(this.loginForm.value).subscribe({
-        next:(response)=>{
+        next:(response )=>{
+          console.log(response);
           if(this.returnUrl){
             this.router.navigateByUrl(this.returnUrl)
 
@@ -72,6 +74,7 @@ export class LoginComponent implements OnInit{
             this.errorMessages = error.error.errors;
           }else{
             this.errorMessages.push(error.error)
+            this.sharedService.showNotification(true,'Invalid Login',`${this.errorMessages}`)
           }
         }
       })

@@ -9,5 +9,7 @@ namespace AdminFullStack.DTO.Account
         public string LastName { get; set; }
 
         public string Jwt { get; set; }
+
+    
     }
 }

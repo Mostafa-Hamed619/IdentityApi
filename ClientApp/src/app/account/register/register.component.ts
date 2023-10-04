@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 import { shareReplay, take } from 'rxjs';
 import { User } from 'src/app/shared/models/account/user';
 import { CredentialResponse } from 'google-one-tap';
-import jwt_decode from 'jwt-decode'
+import jwt_decode from 'jwt-decode';
 import { DOCUMENT } from '@angular/common';
 declare const FB: any;
 

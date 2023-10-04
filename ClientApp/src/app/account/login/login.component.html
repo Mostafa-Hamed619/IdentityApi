@@ -27,7 +27,7 @@
                 </div>
 
                 <div class="form-floatin" *ngIf="errorMessages.length > 0">
-                    <app-validation-messages [errorMessages]="errorMessages"></app-validation-messages>
+                    <!-- <app-validation-messages [errorMessages]="errorMessages"></app-validation-messages> -->
 
                     <a class="btn btn-link" (click)="resendEmailConfirmationLink()"
                     *ngIf="errorMessages[0].includes('Please confirm your email')">
